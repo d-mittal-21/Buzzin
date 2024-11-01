@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\priv",
+    "\\priv\\repo",
+    "\\priv\\repo\\migrations"
+  ],
+  "SelectedNode": "\\priv\\repo\\migrations\\20241101183000_create_messages.exs",
+  "PreviewInSolutionExplorer": false
+}
