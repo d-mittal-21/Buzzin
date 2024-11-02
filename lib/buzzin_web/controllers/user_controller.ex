@@ -38,4 +38,12 @@ defmodule BuzzinWeb.UserController do
         |> json(%{error: reason})
     end
   end
+
+  def register_page(conn, _params) do
+    render(conn, :register)
+  end
+
+  def login_page(conn, _params) do
+    render(conn, :login)
+  end
 end

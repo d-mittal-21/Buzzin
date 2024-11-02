@@ -1,7 +1,6 @@
 defmodule Buzzin.Accounts do
   alias Buzzin.Repo
   alias Buzzin.Accounts.User
-  alias Argon2, as: PasswordHasher
 
   def register_user(attrs) do
     %User{}
@@ -13,7 +12,8 @@ defmodule Buzzin.Accounts do
     user = Repo.get_by(User, phone_number: phone_number)
 
     cond do
-      user && PasswordHasher.verify_pass(password, user.password_hash) ->
+      # Simple reverse string comparison (FOR DEVELOPMENT ONLY!)
+      user && String.reverse(password) == user.password_hash ->
         {:ok, user}
 
       true ->

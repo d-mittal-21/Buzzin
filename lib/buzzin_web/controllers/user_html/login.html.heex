@@ -1,0 +1,78 @@
+<div class="mx-auto max-w-sm">
+    <.header class="text-center">
+      Login
+    </.header>
+  
+    <div class="mt-10">
+      <form id="login-form" phx-submit="save">
+        <div class="space-y-4">
+          <div>
+            <.input
+              label="Phone Number"
+              id="phone_number"
+              name="phone_number"
+              type="text"
+              required
+              value=""
+            />
+          </div>
+          <div>
+            <.input
+              label="Password"
+              id="password"
+              name="password"
+              type="password"
+              required
+              value=""
+            />
+          </div>
+          <div>
+            <.button type="submit" phx-disable-with="Signing in..." class="w-full">
+              Sign in
+            </.button>
+          </div>
+        </div>
+      </form>
+  
+      <p class="mt-4 text-center">
+        Don't have an account?
+        <.link navigate={~p"/register"} class="text-blue-600 hover:underline">
+          Register
+        </.link>
+      </p>
+    </div>
+  </div>
+  
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        phone_number: document.getElementById('phone_number').value,
+        password: document.getElementById('password').value
+      };
+  
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+  
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Store user info in localStorage or session
+          localStorage.setItem('user', JSON.stringify(data.user));
+          window.location.href = '/chat';
+        } else {
+          alert(data.error || 'Login failed');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred during login');
+      }
+    });
+  </script>

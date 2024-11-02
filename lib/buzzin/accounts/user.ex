@@ -1,7 +1,6 @@
 defmodule Buzzin.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Argon2, as: PasswordHasher
 
   schema "users" do
     field :phone_number, :string
@@ -21,9 +20,12 @@ defmodule Buzzin.Accounts.User do
     |> put_password_hash()
   end
 
+  # Temporary simple hashing (NOT FOR PRODUCTION!)
   def put_password_hash(changeset) do
     if password = get_change(changeset, :password) do
-      change(changeset, password_hash: PasswordHasher.hash_pwd_salt(password))
+      # Simply reverse the string as a "hash" (FOR DEVELOPMENT ONLY!)
+      hash = String.reverse(password)
+      change(changeset, password_hash: hash)
     else
       changeset
     end

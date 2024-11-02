@@ -18,6 +18,9 @@ defmodule BuzzinWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/register", UserController, :register_page
+    get "/login", UserController, :login_page
+    get "/chat", ChatController, :index
   end
 
   scope "/api", BuzzinWeb do
