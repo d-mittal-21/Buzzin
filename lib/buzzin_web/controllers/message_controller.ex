@@ -2,58 +2,44 @@ defmodule BuzzinWeb.MessageController do
   use BuzzinWeb, :controller
   alias Buzzin.Messaging
 
-  def create(conn, %{"recipient_phone" => recipient_phone, "message" => message}) do
-    # TODO: Get actual user_id from session/token
-    sender_id = get_session(conn, :user_id)
+  def create(conn, %{"recipient_phone" => recipient_phone, "body" => body}) do
+    # Get current user's ID from conn.assigns (set by AuthPlug)
+    sender_id = conn.assigns.current_user_id
 
-    case Messaging.start_conversation(sender_id, recipient_phone, message) do
+    case Messaging.start_conversation(sender_id, recipient_phone, body) do
       {:ok, message} ->
         conn
         |> put_status(:created)
-        |> json(%{
-          message: "Message sent",
-          data: %{
-            id: message.id,
-            body: message.body,
-            inserted_at: message.inserted_at
-          }
-        })
+        |> json(%{message: "Message sent", data: message})
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        errors = Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-          Enum.reduce(opts, msg, fn {key, value}, acc ->
-            String.replace(acc, "%{#{key}}", to_string(value))
-          end)
-        end)
-
+      {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: errors})
-
-      {:error, message} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{error: message})
+        |> json(%{errors: format_errors(changeset)})
     end
   end
 
   def index(conn, %{"other_user_id" => other_user_id}) do
-    # TODO: Get actual user_id from session/token
-    user_id = get_session(conn, :user_id)
-
-    messages = Messaging.get_messages(user_id, other_user_id)
+    sender_id = conn.assigns.current_user_id
+    messages = Messaging.get_messages(sender_id, other_user_id)
 
     conn
     |> json(%{data: messages})
   end
 
   def conversations(conn, _params) do
-    # TODO: Get actual user_id from session/token
-    user_id = get_session(conn, :user_id)
-
+    user_id = conn.assigns.current_user_id
     conversations = Messaging.get_conversations(user_id)
 
     conn
     |> json(%{data: conversations})
+  end
+
+  defp format_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
   end
 end
