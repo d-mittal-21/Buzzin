@@ -29,6 +29,8 @@ defmodule BuzzinWeb.Router do
     post "/register", UserController, :register
     post "/login", UserController, :login
 
+    get "/conversations", MessageController, :conversations
+    get "/messages/:other_user_id", MessageController, :index
     post "/messages", MessageController, :create
 
   end

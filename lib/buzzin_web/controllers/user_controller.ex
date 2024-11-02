@@ -29,8 +29,12 @@ defmodule BuzzinWeb.UserController do
     case Accounts.authenticate_user(phone, pass) do
       {:ok, user} ->
         conn
+        |> put_session(:user_id, user.id)  # Store user_id in session
         |> put_status(:ok)
-        |> json(%{message: "Login successful", user: user})
+        |> json(%{
+          message: "Login successful",
+          user: %{id: user.id, phone_number: user.phone_number}
+        })
 
       {:error, reason} ->
         conn
