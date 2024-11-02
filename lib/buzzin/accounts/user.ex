@@ -14,8 +14,8 @@ defmodule Buzzin.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:phone_number, :password_hash])
-    |> validate_required([:phone_number, :password_hash])
+    |> cast(attrs, [:phone_number, :password])
+    |> validate_required([:phone_number, :password])
     |> unique_constraint(:phone_number)
     |> validate_length(:password, min: 6)
     |> put_password_hash()

@@ -1,4 +1,4 @@
-defmodule Buzzin.MessageController do
+defmodule BuzzinWeb.MessageController do
   use BuzzinWeb, :controller
   alias Buzzin.Messaging
 

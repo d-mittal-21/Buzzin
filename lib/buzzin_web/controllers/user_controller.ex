@@ -7,12 +7,21 @@ defmodule BuzzinWeb.UserController do
       {:ok, user} ->
         conn
         |> put_status(:created)
-        |> json(%{message: "User created successfully", user: user})
+        |> json(%{message: "User created successfully", user: %{
+          id: user.id,
+          phone_number: user.phone_number
+        }})
 
       {:error, changeset} ->
+        errors = Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+          Enum.reduce(opts, msg, fn {key, value}, acc ->
+            String.replace(acc, "%{#{key}}", to_string(value))
+          end)
+        end)
+
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{error: changeset})
+        |> json(%{errors: errors})
     end
   end
 

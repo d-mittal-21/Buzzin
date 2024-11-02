@@ -20,6 +20,16 @@ defmodule BuzzinWeb.Router do
     get "/", PageController, :home
   end
 
+  scope "/api", BuzzinWeb do
+    pipe_through :api
+
+    post "/register", UserController, :register
+    post "/login", UserController, :login
+
+    post "/messages", MessageController, :create
+
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", BuzzinWeb do
   #   pipe_through :api
