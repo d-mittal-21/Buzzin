@@ -12,6 +12,11 @@ defmodule BuzzinWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session  # Add this to enable sessions
+  end
+
+  pipeline :auth do
+    plug BuzzinWeb.AuthPlug
   end
 
   scope "/", BuzzinWeb do
@@ -28,11 +33,15 @@ defmodule BuzzinWeb.Router do
 
     post "/register", UserController, :register
     post "/login", UserController, :login
+  end
+
+  # Protected routes
+  scope "/api", BuzzinWeb do
+    pipe_through [:api, :auth]  # Add auth pipeline
 
     get "/conversations", MessageController, :conversations
     get "/messages/:other_user_id", MessageController, :index
     post "/messages", MessageController, :create
-
   end
 
   # Other scopes may use custom stacks.
