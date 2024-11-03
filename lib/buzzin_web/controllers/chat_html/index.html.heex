@@ -26,6 +26,7 @@
               name="recipient_phone"
               type="text"
               required
+              value=""
             />
             <.input
               label="Message"
@@ -33,6 +34,7 @@
               name="message_body"
               type="text"
               required
+              value=""
             />
             <.button type="submit" class="mt-2">
               Start Chat
@@ -67,6 +69,7 @@
                 placeholder="Type a message..."
                 class="flex-grow"
                 required
+                value=""
               />
               <.button type="submit">Send</.button>
             </form>
@@ -120,37 +123,41 @@
   
     // Load messages for a specific conversation
     async function loadMessages(recipientId, recipientPhone) {
-      currentRecipientId = recipientId;
-      document.getElementById('current-recipient-id').value = recipientId;
+    currentRecipientId = recipientId;
+    document.getElementById('current-recipient-id').value = recipientId;
+    
+    try {
+      const response = await fetch(`/api/messages/${recipientId}`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      const messagesContainer = document.getElementById('messages-container');
+      const noChat = document.getElementById('no-chat-selected');
+      const inputForm = document.getElementById('message-input-form');
       
-      try {
-        const response = await fetch(`/api/messages/${recipientId}`, {
-          credentials: 'include'
-        });
-        const data = await response.json();
-  
-        const messagesContainer = document.getElementById('messages-container');
-        document.getElementById('no-chat-selected').style.display = 'none';
-        document.getElementById('message-input-form').classList.remove('hidden');
-  
-        messagesContainer.innerHTML = data.data.map(msg => `
-          <div class="mb-2 ${msg.sender_id === user.id ? 'text-right' : 'text-left'}">
-            <div class="inline-block p-2 rounded-lg ${
-              msg.sender_id === user.id 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 text-gray-800'
-            }">
-              ${msg.body}
-            </div>
+      // Hide "no chat selected" message and show input form
+      if (noChat) noChat.style.display = 'none';
+      if (inputForm) inputForm.classList.remove('hidden');
+
+      messagesContainer.innerHTML = data.data.map(msg => `
+        <div class="mb-2 ${msg.sender_id === user.id ? 'text-right' : 'text-left'}">
+          <div class="inline-block p-2 rounded-lg ${
+            msg.sender_id === user.id 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-200 text-gray-800'
+          }">
+            ${msg.body}
           </div>
-        `).join('');
-  
-        // Scroll to bottom
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      } catch (error) {
-        console.error('Error loading messages:', error);
-      }
+        </div>
+      `).join('');
+
+      // Scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    } catch (error) {
+      console.error('Error loading messages:', error);
     }
+  }
   
     // Handle new chat form submission
     document.getElementById('start-chat-form').addEventListener('submit', async (e) => {
@@ -193,6 +200,10 @@
       const messageInput = document.getElementById('message-input');
       const recipientId = document.getElementById('current-recipient-id').value;
       
+      if (!recipientId || !messageInput.value.trim()) {
+        return;
+      }
+  
       try {
         const response = await fetch('/api/messages', {
           method: 'POST',
@@ -201,7 +212,7 @@
           },
           credentials: 'include',
           body: JSON.stringify({
-            recipient_phone: recipientId,
+            recipient_id: recipientId,  // Changed from recipient_phone to recipient_id
             body: messageInput.value
           })
         });

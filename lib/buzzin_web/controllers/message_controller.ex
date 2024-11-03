@@ -2,20 +2,41 @@ defmodule BuzzinWeb.MessageController do
   use BuzzinWeb, :controller
   alias Buzzin.Messaging
 
-  def create(conn, %{"recipient_phone" => recipient_phone, "body" => body}) do
-    # Get current user's ID from conn.assigns (set by AuthPlug)
+  def create(conn, params) do
     sender_id = conn.assigns.current_user_id
 
-    case Messaging.start_conversation(sender_id, recipient_phone, body) do
-      {:ok, message} ->
-        conn
-        |> put_status(:created)
-        |> json(%{message: "Message sent", data: message})
+    case params do
+      # New conversation with phone number
+      %{"recipient_phone" => recipient_phone, "body" => body} ->
+        case Messaging.start_conversation(sender_id, recipient_phone, body) do
+          {:ok, message} ->
+            conn
+            |> put_status(:created)
+            |> json(%{message: "Message sent", data: message})
 
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{errors: format_errors(changeset)})
+          {:error, reason} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{error: reason})
+        end
+
+      # Message to existing conversation
+      %{"recipient_id" => recipient_id, "body" => body} ->
+        case Messaging.send_message(%{
+          sender_id: sender_id,
+          recipient_id: recipient_id,
+          body: body
+        }) do
+          {:ok, message} ->
+            conn
+            |> put_status(:created)
+            |> json(%{message: "Message sent", data: message})
+
+          {:error, changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: format_errors(changeset)})
+        end
     end
   end
 

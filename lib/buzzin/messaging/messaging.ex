@@ -53,6 +53,15 @@ defmodule Buzzin.Messaging do
     |> order_by([m], asc: m.inserted_at)
     |> preload([:sender, :recipient])
     |> Repo.all()
+    |> Enum.map(fn message ->
+      %{
+        id: message.id,
+        body: message.body,
+        sender_id: message.sender_id,
+        recipient_id: message.recipient_id,
+        inserted_at: message.inserted_at
+      }
+    end)
   end
 
   @doc """

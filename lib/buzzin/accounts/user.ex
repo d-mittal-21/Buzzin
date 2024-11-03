@@ -2,6 +2,7 @@ defmodule Buzzin.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, only: [:id, :phone_number]}
   schema "users" do
     field :phone_number, :string
     field :password, :string, virtual: true

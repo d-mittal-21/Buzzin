@@ -2,6 +2,7 @@ defmodule Buzzin.Messaging.Message do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, only: [:id, :body, :sender_id, :recipient_id, :inserted_at]}
   schema "messages" do
     field :body, :string
     belongs_to :sender, Buzzin.Accounts.User
