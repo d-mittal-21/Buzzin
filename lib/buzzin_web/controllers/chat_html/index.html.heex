@@ -50,11 +50,34 @@
   
       <!-- Chat Area -->
       <div class="w-2/3 p-4">
+        <!-- AI Assistant Button -->
+        <div class="mb-4 flex justify-end">
+          <button
+            id="ai-assistant-btn"
+            class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 flex items-center gap-2"
+            onclick="toggleAIChat()"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            AI Assistant
+          </button>
+        </div>
         <div id="current-chat" class="h-full flex flex-col">
           <!-- Messages will be displayed here -->
           <div id="messages-container" class="flex-grow overflow-y-auto mb-4">
             <div class="flex items-center justify-center h-full text-gray-500" id="no-chat-selected">
               Select a chat or start a new conversation
+            </div>
+          </div>
+
+          <!-- AI Chat Interface (hidden by default) -->
+          <div id="ai-chat-container" class="h-full flex-grow overflow-y-auto mb-4 hidden">
+            <div class="space-y-4" id="ai-messages">
+              <div class="bg-purple-100 p-3 rounded-lg">
+                Hi! I'm your AI assistant. I can help you analyze your chat history and answer questions about your conversations.
+              </div>
             </div>
           </div>
   
@@ -72,6 +95,22 @@
                 value=""
               />
               <.button type="submit">Send</.button>
+            </form>
+          </div>
+
+           <!-- AI Chat Input Form (hidden by default) -->
+          <div id="ai-input-form" class="hidden">
+            <form id="ai-message-form" class="flex gap-2">
+              <.input
+                type="text"
+                name="ai-message"
+                id="ai-message-input"
+                placeholder="Ask me anything about your chats..."
+                class="flex-grow"
+                required
+                value=""
+              />
+              <.button type="submit">Ask</.button>
             </form>
           </div>
         </div>
@@ -123,41 +162,51 @@
   
     // Load messages for a specific conversation
     async function loadMessages(recipientId, recipientPhone) {
-    currentRecipientId = recipientId;
-    document.getElementById('current-recipient-id').value = recipientId;
-    
-    try {
-      const response = await fetch(`/api/messages/${recipientId}`, {
-        credentials: 'include'
-      });
-      const data = await response.json();
-
-      const messagesContainer = document.getElementById('messages-container');
-      const noChat = document.getElementById('no-chat-selected');
-      const inputForm = document.getElementById('message-input-form');
+      // If AI chat is active, disable it first
+      if (isAIChatActive) {
+        isAIChatActive = false;
+        const aiContainer = document.getElementById('ai-chat-container');
+        const aiInput = document.getElementById('ai-input-form');
+        aiContainer.classList.add('hidden');
+        aiInput.classList.add('hidden');
+      }
+  
+      currentRecipientId = recipientId;
+      document.getElementById('current-recipient-id').value = recipientId;
       
-      // Hide "no chat selected" message and show input form
-      if (noChat) noChat.style.display = 'none';
-      if (inputForm) inputForm.classList.remove('hidden');
-
-      messagesContainer.innerHTML = data.data.map(msg => `
-        <div class="mb-2 ${msg.sender_id === user.id ? 'text-right' : 'text-left'}">
-          <div class="inline-block p-2 rounded-lg ${
-            msg.sender_id === user.id 
-              ? 'bg-blue-500 text-white' 
-              : 'bg-gray-200 text-gray-800'
-          }">
-            ${msg.body}
+      try {
+        const response = await fetch(`/api/messages/${recipientId}`, {
+          credentials: 'include'
+        });
+        const data = await response.json();
+  
+        const messagesContainer = document.getElementById('messages-container');
+        const noChat = document.getElementById('no-chat-selected');
+        const inputForm = document.getElementById('message-input-form');
+        
+        // Show messages container and input form
+        messagesContainer.classList.remove('hidden');
+        if (noChat) noChat.style.display = 'none';
+        if (inputForm) inputForm.classList.remove('hidden');
+  
+        messagesContainer.innerHTML = data.data.map(msg => `
+          <div class="mb-2 ${msg.sender_id === user.id ? 'text-right' : 'text-left'}">
+            <div class="inline-block p-2 rounded-lg ${
+              msg.sender_id === user.id 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-gray-200 text-gray-800'
+            }">
+              ${msg.body}
+            </div>
           </div>
-        </div>
-      `).join('');
-
-      // Scroll to bottom
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    } catch (error) {
-      console.error('Error loading messages:', error);
+        `).join('');
+  
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      }
     }
-  }
   
     // Handle new chat form submission
     document.getElementById('start-chat-form').addEventListener('submit', async (e) => {
@@ -228,6 +277,86 @@
       } catch (error) {
         console.error('Error:', error);
         alert('Failed to send message');
+      }
+    });
+
+    let isAIChatActive = false;
+
+    function toggleAIChat() {
+      isAIChatActive = !isAIChatActive;
+      const messagesContainer = document.getElementById('messages-container');
+      const aiContainer = document.getElementById('ai-chat-container');
+      const messageInput = document.getElementById('message-input-form');
+      const aiInput = document.getElementById('ai-input-form');
+      const noChat = document.getElementById('no-chat-selected');
+  
+      if (isAIChatActive) {
+        messagesContainer.classList.add('hidden');
+        aiContainer.classList.remove('hidden');
+        messageInput.classList.add('hidden');
+        aiInput.classList.remove('hidden');
+        if (noChat) noChat.style.display = 'none';
+      } else {
+        aiContainer.classList.add('hidden');
+        aiInput.classList.add('hidden');
+        
+        // If there's a selected chat, show its messages
+        if (currentRecipientId) {
+          messagesContainer.classList.remove('hidden');
+          messageInput.classList.remove('hidden');
+          if (noChat) noChat.style.display = 'none';
+        } else {
+          messagesContainer.classList.remove('hidden');
+          if (noChat) noChat.style.display = 'flex';
+        }
+      }
+    }
+
+    // Handle AI message form submission
+    document.getElementById('ai-message-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const messageInput = document.getElementById('ai-message-input');
+      const message = messageInput.value;
+      const aiMessages = document.getElementById('ai-messages');
+      
+      // Add user message to chat
+      aiMessages.innerHTML += `
+        <div class="text-right">
+          <div class="inline-block bg-blue-500 text-white p-3 rounded-lg">
+            ${message}
+          </div>
+        </div>
+      `;
+
+      messageInput.value = '';
+      
+      try {
+        const response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+        
+        // Add AI response to chat
+        aiMessages.innerHTML += `
+          <div class="text-left">
+            <div class="inline-block bg-purple-100 p-3 rounded-lg">
+              ${data.response}
+            </div>
+          </div>
+        `;
+
+        // Scroll to bottom
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to get AI response');
       }
     });
   

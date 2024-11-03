@@ -42,6 +42,7 @@ defmodule BuzzinWeb.Router do
     get "/conversations", MessageController, :conversations
     get "/messages/:other_user_id", MessageController, :index
     post "/messages", MessageController, :create
+    post "/ai/chat", AIController, :chat
   end
 
   # Other scopes may use custom stacks.
