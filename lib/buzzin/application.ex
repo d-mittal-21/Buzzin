@@ -12,6 +12,7 @@ defmodule Buzzin.Application do
       Buzzin.Repo,
       {DNSCluster, query: Application.get_env(:buzzin, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Buzzin.PubSub},
+      {Task, fn -> Buzzin.AI.LLM.start_link() end},
       # Start a worker by calling: Buzzin.Worker.start_link(arg)
       # {Buzzin.Worker, arg},
       # Start to serve requests, typically the last entry

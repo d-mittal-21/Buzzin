@@ -56,8 +56,10 @@ defmodule Buzzin.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:argon2_elixir, path: "deps/argon2_elixir"}
+      {:bumblebee, "~> 0.4.2"},
+      {:nx, "~> 0.6.2"}
     ]
+    # {:argon2_elixir, path: "deps/argon2_elixir"},
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
